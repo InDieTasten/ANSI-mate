@@ -215,11 +215,16 @@ local function drawOverlayPixel(x, y, char)
     end
 end
 
-local function render()
-    TermUI.clear(Term, "+")
+local function render(targetCanvas)
+    -- Clear the target canvas
+    for y = 1, targetCanvas.height do
+        for x = 1, targetCanvas.width do
+            Canvas.setPixel(targetCanvas, x, y, " ")
+        end
+    end
 
     --canvas area
-    TermUI.drawCanvas(Term, canvas, canvasX + 1, canvasY + 1)
+    Canvas.drawCanvas(targetCanvas, canvas, canvasX + 1, canvasY + 1)
     --current tool overlay
     if selectedTool == rectangle and tools[rectangle].start and tools[rectangle].fin then
         local x1, y1 = tools[rectangle].start[1], tools[rectangle].start[2]
@@ -235,45 +240,49 @@ local function render()
             drawOverlayPixel(xMax, y, tools[rectangle].char)
         end
     end
-    Term.setCursorPos(canvasX + canvas.width + 1, canvasY + canvas.height + 1)
-    Term.write("%")
+    Canvas.setPixel(targetCanvas, canvasX + canvas.width + 1, canvasY + canvas.height + 1, "%")
 
     -- toolbar
-    TermUI.fillRect(Term, Term.width - toolbarWidth + 1, 1, toolbarWidth, Term.height, " ")
-    TermUI.fillRect(Term, Term.width - toolbarWidth, 1, 1, Term.height, "|")
-    Term.setCursorPos(Term.width - toolbarWidth + 1, 1)
-    Term.write("   TOOLS")
-    TermUI.fillRect(Term, Term.width - toolbarWidth + 1, 2, toolbarWidth, 1, "-")
-    for i, tool in ipairs(tools) do
-        Term.setCursorPos(Term.width - toolbarWidth + 1, i + 2)
-        if i == selectedTool then
-            Term.write("> ")
-        else
-            Term.write("  ")
+    for y = 1, Term.height do
+        for x = Term.width - toolbarWidth + 1, Term.width do
+            Canvas.setPixel(targetCanvas, x, y, " ")
         end
-        Term.write(tool.name)
+    end
+    for y = 1, Term.height do
+        Canvas.setPixel(targetCanvas, Term.width - toolbarWidth, y, "|")
+    end
+    for i, tool in ipairs(tools) do
+        local toolName = tool.name
+        if i == selectedTool then
+            toolName = "> " .. toolName
+        else
+            toolName = "  " .. toolName
+        end
+        for j = 1, #toolName do
+            Canvas.setPixel(targetCanvas, Term.width - toolbarWidth + j, i + 2, toolName:sub(j, j))
+        end
     end
 
     -- palette
-    TermUI.fillRect(Term, Term.width - toolbarWidth - paletteWidth, 1, paletteWidth, Term.height, " ")
-    TermUI.fillRect(Term, Term.width - toolbarWidth - paletteWidth - 1, 1, 1, Term.height, "|")
-    Term.setCursorPos(Term.width - toolbarWidth - paletteWidth, 1)
-    Term.write("  PALETTE")
-    TermUI.fillRect(Term, Term.width - toolbarWidth - paletteWidth, 2, paletteWidth, 1, "-")
+    for y = 1, Term.height do
+        for x = Term.width - toolbarWidth - paletteWidth, Term.width - toolbarWidth - 1 do
+            Canvas.setPixel(targetCanvas, x, y, " ")
+        end
+    end
+    for y = 1, Term.height do
+        Canvas.setPixel(targetCanvas, Term.width - toolbarWidth - paletteWidth - 1, y, "|")
+    end
     for x, v in pairs(palette) do
-        for y, c in pairs(v) do
+        for y, c in pairs(v) {
             if x >= 1 and x <= Term.width and y >= 1 and y <= Term.height then
                 if tools[selectedTool].char == c then
-                    Term.setCursorPos(x - 1, y)
-                    Term.write("> <")
+                    Canvas.setPixel(targetCanvas, x - 1, y, ">")
+                    Canvas.setPixel(targetCanvas, x + 1, y, "<")
                 end
-                Term.setCursorPos(x, y)
-                Term.write(c)
+                Canvas.setPixel(targetCanvas, x, y, c)
             end
         end
     end
-
-    Term.flush()
 end
 
 Term.runApp(update, render)

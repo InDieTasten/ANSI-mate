@@ -35,14 +35,25 @@ local function update(inputs)
     return true
 end
 
-local function render()
-    Term.clear()
-    Term.setCursorPos(1, 1)
-    Term.write("Last inputs: \n\r")
-    for _, event in ipairs(lastInputs) do
-        Term.write(formatEvent(event) .. "\r\n")
+local function render(targetCanvas)
+    -- Clear the target canvas
+    for y = 1, targetCanvas.height do
+        for x = 1, targetCanvas.width do
+            Canvas.setPixel(targetCanvas, x, y, " ")
+        end
     end
-    Term.flush()
+
+    -- Render the last inputs
+    local line = 1
+    Canvas.setPixel(targetCanvas, 1, line, "Last inputs: ")
+    line = line + 1
+    for _, event in ipairs(lastInputs) do
+        local eventStr = formatEvent(event)
+        for i = 1, #eventStr do
+            Canvas.setPixel(targetCanvas, i, line, eventStr:sub(i, i))
+        end
+        line = line + 1
+    end
 end
 
 Term.runApp(update, render)

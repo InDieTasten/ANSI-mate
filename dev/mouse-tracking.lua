@@ -1,4 +1,5 @@
 require("../lib/term")
+local Canvas = require("../lib/canvas")
 
 local cursorX
 local cursorY
@@ -17,20 +18,28 @@ local function update(inputs)
     return true
 end
 
-local function render()
-    Term.clear()
-    Term.setCursorPos(1, 1)
-    Term.write("Press Q to quit.")
+local function render(targetCanvas)
+    -- Clear the target canvas
+    for y = 1, targetCanvas.height do
+        for x = 1, targetCanvas.width do
+            Canvas.setPixel(targetCanvas, x, y, " ")
+        end
+    end
 
-    Term.setCursorPos(1, 2)
-    Term.write("Dimensions: " .. Term.width .. "x" .. Term.height)
+    -- Render the text
+    local text = "Press Q to quit."
+    for i = 1, #text do
+        Canvas.setPixel(targetCanvas, i, 1, text:sub(i, i))
+    end
+
+    text = "Dimensions: " .. Term.width .. "x" .. Term.height
+    for i = 1, #text do
+        Canvas.setPixel(targetCanvas, i, 2, text:sub(i, i))
+    end
 
     if cursorX and cursorY then
-        Term.setCursorPos(cursorX, cursorY)
-        Term.write("X")
+        Canvas.setPixel(targetCanvas, cursorX, cursorY, "X")
     end
-    Term.flush()
 end
 
-Term.hideCursor()
 Term.runApp(update, render)

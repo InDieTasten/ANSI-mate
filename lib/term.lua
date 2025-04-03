@@ -1,10 +1,13 @@
 local stty = require("lib/stty")
+local Canvas = require("lib/canvas")
 
 Term = {}
 Term.internalInputBuffer = ""
 Term.internalOutputBuffer = ""
 Term.width = 0
 Term.height = 0
+Term.previousFrame = nil
+Term.currentFrame = nil
 
 --- Decodes mouse scroll, move, press and release events from xterm
 --- according to DECSET 1006
@@ -94,12 +97,31 @@ function Term.runApp(updateFunction, renderFunction)
                 previousWidth = Term.width
                 previousHeight = Term.height
                 table.insert(parsedInputs, { type = "resize", width = Term.width, height = Term.height })
+                Term.previousFrame = Canvas.new(Term.width, Term.height)
+                Term.currentFrame = Canvas.new(Term.width, Term.height)
             end
 
             if not updateFunction(parsedInputs) then
                 break
             end
-            renderFunction()
+
+            -- Render to the current frame
+            renderFunction(Term.currentFrame)
+
+            -- Perform diff between frames
+            local diffs = Canvas.diff(Term.previousFrame, Term.currentFrame)
+
+            -- Apply diffs to the terminal
+            for _, diff in ipairs(diffs) do
+                Term.setCursorPos(diff.x, diff.y)
+                Term.write(diff.char)
+            end
+
+            -- Flush the output buffer
+            Term.flush()
+
+            -- Swap frames
+            Term.previousFrame, Term.currentFrame = Term.currentFrame, Term.previousFrame
         end
     end
 
@@ -123,12 +145,6 @@ function Term.runApp(updateFunction, renderFunction)
         Term.tryRead(1)
         Term.leaveRawMode()
     end
-end
-
---- Clears the terminal screen
---- This will clear the entire screen
-function Term.clear()
-    Term.write("\27[2J")
 end
 
 --- Sets the cursor position to the specified coordinates
