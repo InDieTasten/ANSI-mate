@@ -1,5 +1,17 @@
 {
     "name": "ANSI-mate Development Container",
-    "image": "ubuntu:latest",
-    "postCreateCommand": "apt-get update && apt-get install -y lua5.4 luajit luarocks && luarocks install busted"
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                // "tomblind.local-lua-debugger-vscode",
+                // "sumneko.lua",
+                "oroschz.busted-tests"
+            ]
+        }
+    }
 }
