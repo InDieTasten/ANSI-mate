@@ -55,20 +55,24 @@ function Canvas.fromText(text)
     assert(type(text) == "string", "text must be a string")
 
     local lines = {}
+    local maxWidth = 0
     for line in string.gmatch(text, "([^\n]+)") do
         table.insert(lines, line)
+        if #line > maxWidth then
+            maxWidth = #line
+        end
     end
-    local width = #lines[1]
+    local width = maxWidth
     local height = #lines
     local canvas = Canvas.new(width, height)
     for y = 1, height do
         local line = lines[y]
         for x = 1, width do
             local char = line:sub(x, x)
+            if char == "" then char = " " end
             Canvas.setPixel(canvas, x, y, char)
         end
     end
-
     return canvas
 end
 
