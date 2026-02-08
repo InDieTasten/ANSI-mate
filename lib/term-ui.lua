@@ -17,10 +17,6 @@ function TermUI.flipScreenBuffer(termContext, newBufferCanvas)
 end
 
 function TermUI.differentialRender(termContext, oldBufferCanvas, newBufferCanvas)
-    assert(type(termContext) == "table", "termContext must be a table")
-    assert(type(oldBufferCanvas) == "table", "oldBufferCanvas must be a table")
-    assert(type(newBufferCanvas) == "table", "newBufferCanvas must be a table")
-
     if oldBufferCanvas.width == newBufferCanvas.width and oldBufferCanvas.height == newBufferCanvas.height then
         for y = 1, newBufferCanvas.height do
             for x = 1, newBufferCanvas.width do
