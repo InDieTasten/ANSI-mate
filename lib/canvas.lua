@@ -14,6 +14,18 @@ function Canvas.new(width, height)
     return canvas
 end
 
+function Canvas.copy(canvas)
+    assert(type(canvas) == "table", "canvas must be a table")
+
+    local newCanvas = Canvas.new(canvas.width, canvas.height)
+    for y = 1, canvas.height do
+        for x = 1, canvas.width do
+            newCanvas.pixels[y][x] = canvas.pixels[y][x]
+        end
+    end
+    return newCanvas
+end
+
 function Canvas.setPixel(canvas, x, y, char)
     assert(type(canvas) == "table", "canvas must be a table")
     assert(type(x) == "number", "x must be a number")

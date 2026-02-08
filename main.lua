@@ -270,7 +270,7 @@ local function render()
             end
         end
     end
-    TermUI.drawCanvas(Term, renderCanvas, 1, 1)
+    TermUI.flipScreenBuffer(Term, renderCanvas)
     Term.flush()
 end
 
