@@ -4,6 +4,7 @@ require("lib/term-ui")
 require("lib/canvas-ui")
 require("lib/ui/layout")
 require("lib/ui/tool-control")
+require("lib/ui/palette-control")
 
 local defaultCanvasWidth = 20
 local defaultCanvasHeight = 10
@@ -20,8 +21,6 @@ else
     artCanvas = Canvas.new(defaultCanvasWidth, defaultCanvasHeight)
 end
 
-
-local palette
 local canvasX
 local canvasY
 local resizing = false
@@ -118,8 +117,8 @@ local function update(inputs)
                 resizing = true
             elseif input.x >= Term.width - toolbarWidth + 1 and input.y >= 3 and input.y <= #tools + 2 then
                 state.selectedTool = input.y - 2
-            elseif palette[input.x] and palette[input.x][input.y] and input.button == 0 then
-                tools[state.selectedTool].char = palette[input.x][input.y]
+            elseif state.palette[input.x] and state.palette[input.x][input.y] and input.button == 0 then
+                tools[state.selectedTool].char = state.palette[input.x][input.y]
             elseif state.selectedTool == pencil and input.button == 0 then
                 local x = input.x - canvasX
                 local y = input.y - canvasY
@@ -179,7 +178,7 @@ local function update(inputs)
             renderCanvas = Canvas.new(input.width, input.height)
             canvasX = math.floor(Term.width / 2 - artCanvas.width / 2)
             canvasY = math.floor(Term.height / 2 - artCanvas.height / 2)
-            palette = {}
+            state.palette = {}
             for c = 32, 126 do
                 local column = 0
                 if c >= 96 then
@@ -189,9 +188,11 @@ local function update(inputs)
                 end
                 local x = Term.width - toolbarWidth - paletteWidth + 2 + column * 3
                 local y = c - 29 - column * 32
-                palette[x] = palette[x] or {}
-                palette[x][y] = string.char(c)
+                state.palette[x] = state.palette[x] or {}
+                state.palette[x][y] = string.char(c)
             end
+            state.globalOffsetX = Term.width - toolbarWidth - paletteWidth - 1
+            state.globalOffsetY = 0
         elseif input.type == "mouse_scroll" then
             local amplify = input.mods.shift and 3 or 1
             if input.mods.ctrl then
@@ -223,7 +224,7 @@ end
 
 local componentTree = Layout.columns("|",
     { "fill", Layout.none() },
-    { 12, Layout.none() },
+    { 12, PaletteControl.new(state, tools) },
     { 15, ToolControl.new(tools, state) })
 
 local function render()
@@ -250,21 +251,6 @@ local function render()
     end
     Canvas.trySetPixel(renderCanvas, canvasX + artCanvas.width + 1, canvasY + artCanvas.height + 1, "%")
 
-    -- palette
-    --CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, paletteWidth, Term.height, " ")
-    CanvasUI.writeLine(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, "  PALETTE")
-    CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth, 2, paletteWidth, 1, "-")
-    for x, v in pairs(palette) do
-        for y, c in pairs(v) do
-            if x >= 1 and x <= Term.width and y >= 1 and y <= Term.height then
-                if tools[state.selectedTool].char == c then
-                    Canvas.trySetPixel(renderCanvas, x - 1, y, ">")
-                    Canvas.trySetPixel(renderCanvas, x + 1, y, "<")
-                end
-                Canvas.trySetPixel(renderCanvas, x, y, c)
-            end
-        end
-    end
     TermUI.flipScreenBuffer(Term, renderCanvas)
     Term.flush()
 end
