@@ -3,6 +3,7 @@ require("lib/canvas")
 require("lib/term-ui")
 require("lib/canvas-ui")
 require("lib/ui/layout")
+require("lib/ui/tool-control")
 
 local defaultCanvasWidth = 20
 local defaultCanvasHeight = 10
@@ -52,7 +53,9 @@ local eraser = 2
 local rectangle = 3
 local fill = 4
 local globalFill = 5
-local selectedTool = pencil
+local state = {
+    selectedTool = pencil
+}
 
 local function calculateToolbarWidth()
     local maxWidth = 0
@@ -71,11 +74,11 @@ local function update(inputs)
         if input.type == "char" and input.char == "q" then     -- Q
             return false
         elseif input.type == "char" and input.char == "p" then -- P
-            selectedTool = pencil
+            state.selectedTool = pencil
         elseif input.type == "char" and input.char == "e" then -- E
-            selectedTool = eraser
+            state.selectedTool = eraser
         elseif input.type == "char" and input.char == "r" then -- R
-            selectedTool = rectangle
+            state.selectedTool = rectangle
         elseif input.type == "raw" and input.hex == "13" then  -- Ctrl + S
             local file = io.open(fileName, "w")
             if file then
@@ -91,19 +94,19 @@ local function update(inputs)
                 if newWidth >= 1 and newHeight >= 1 then
                     artCanvas = Canvas.resize(artCanvas, newWidth, newHeight)
                 end
-            elseif selectedTool == pencil and input.button == 0 then -- pencil
+            elseif state.selectedTool == pencil and input.button == 0 then -- pencil
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
                     Canvas.setPixel(artCanvas, x, y, tools[pencil].char)
                 end
-            elseif selectedTool == eraser and input.button == 0 then -- eraser
+            elseif state.selectedTool == eraser and input.button == 0 then -- eraser
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
                     Canvas.setPixel(artCanvas, x, y, " ")
                 end
-            elseif selectedTool == rectangle and input.button == 0 then -- rectangle
+            elseif state.selectedTool == rectangle and input.button == 0 then -- rectangle
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if tools[rectangle].start then
@@ -114,30 +117,30 @@ local function update(inputs)
             if input.x == canvasX + artCanvas.width + 1 and input.y == canvasY + artCanvas.height + 1 then
                 resizing = true
             elseif input.x >= Term.width - toolbarWidth + 1 and input.y >= 3 and input.y <= #tools + 2 then
-                selectedTool = input.y - 2
+                state.selectedTool = input.y - 2
             elseif palette[input.x] and palette[input.x][input.y] and input.button == 0 then
-                tools[selectedTool].char = palette[input.x][input.y]
-            elseif selectedTool == pencil and input.button == 0 then
+                tools[state.selectedTool].char = palette[input.x][input.y]
+            elseif state.selectedTool == pencil and input.button == 0 then
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
                     Canvas.setPixel(artCanvas, x, y, tools[pencil].char)
                 end
-            elseif selectedTool == eraser and input.button == 0 then
+            elseif state.selectedTool == eraser and input.button == 0 then
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
                     Canvas.setPixel(artCanvas, x, y, " ")
                 end
-            elseif selectedTool == rectangle and input.button == 0 then
+            elseif state.selectedTool == rectangle and input.button == 0 then
                 tools[rectangle].start = { input.x - canvasX, input.y - canvasY }
-            elseif selectedTool == fill and input.button == 0 then
+            elseif state.selectedTool == fill and input.button == 0 then
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
                     Canvas.fill(artCanvas, x, y, tools[fill].char, false)
                 end
-            elseif selectedTool == globalFill and input.button == 0 then
+            elseif state.selectedTool == globalFill and input.button == 0 then
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
@@ -146,13 +149,13 @@ local function update(inputs)
             end
         elseif input.type == "mouse_release" then
             resizing = false
-            if selectedTool == pencil and input.button == 0 then -- pencil
+            if state.selectedTool == pencil and input.button == 0 then -- pencil
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
                     Canvas.setPixel(artCanvas, x, y, tools[pencil].char)
                 end
-            elseif selectedTool == rectangle and input.button == 0 then -- rectangle
+            elseif state.selectedTool == rectangle and input.button == 0 then -- rectangle
                 local x = input.x - canvasX
                 local y = input.y - canvasY
                 if tools[rectangle].start and tools[rectangle].fin then
@@ -221,7 +224,7 @@ end
 local componentTree = Layout.columns("|",
     { "fill", Layout.none() },
     { 12, Layout.none() },
-    { 15, Layout.none() })
+    { 15, ToolControl.new(tools, state) })
 
 local function render()
     CanvasUI.clear(renderCanvas, "+")
@@ -231,7 +234,7 @@ local function render()
     --canvas area
     CanvasUI.drawCanvas(renderCanvas, artCanvas, canvasX + 1, canvasY + 1)
     -- --current tool overlay
-    if selectedTool == rectangle and tools[rectangle].start and tools[rectangle].fin then
+    if state.selectedTool == rectangle and tools[rectangle].start and tools[rectangle].fin then
         local x1, y1 = tools[rectangle].start[1], tools[rectangle].start[2]
         local x2, y2 = tools[rectangle].fin[1], tools[rectangle].fin[2]
         local xMin, xMax = math.min(x1, x2), math.max(x1, x2)
@@ -247,20 +250,6 @@ local function render()
     end
     Canvas.trySetPixel(renderCanvas, canvasX + artCanvas.width + 1, canvasY + artCanvas.height + 1, "%")
 
-    -- toolbar
-    --CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth + 1, 1, toolbarWidth, Term.height, " ")
-    CanvasUI.writeLine(renderCanvas, Term.width - toolbarWidth + 1, 1, "   TOOLS")
-    CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth + 1, 2, toolbarWidth, 1, "-")
-    for i, tool in ipairs(tools) do
-        local toolLine = ""
-        if i == selectedTool then
-            toolLine = "> "
-        else
-            toolLine = "  "
-        end
-        CanvasUI.writeLine(renderCanvas, Term.width - toolbarWidth + 1, i + 2, toolLine .. tool.name)
-    end
-
     -- palette
     --CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, paletteWidth, Term.height, " ")
     CanvasUI.writeLine(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, "  PALETTE")
@@ -268,7 +257,7 @@ local function render()
     for x, v in pairs(palette) do
         for y, c in pairs(v) do
             if x >= 1 and x <= Term.width and y >= 1 and y <= Term.height then
-                if tools[selectedTool].char == c then
+                if tools[state.selectedTool].char == c then
                     Canvas.trySetPixel(renderCanvas, x - 1, y, ">")
                     Canvas.trySetPixel(renderCanvas, x + 1, y, "<")
                 end
