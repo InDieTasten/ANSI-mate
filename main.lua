@@ -2,6 +2,7 @@ require("lib/term")
 require("lib/canvas")
 require("lib/term-ui")
 require("lib/canvas-ui")
+require("lib/ui/layout")
 
 local defaultCanvasWidth = 20
 local defaultCanvasHeight = 10
@@ -217,12 +218,19 @@ local function drawOverlayPixel(x, y, char)
     end
 end
 
+local componentTree = Layout.columns("|",
+    { "fill", Layout.none() },
+    { 12, Layout.none() },
+    { 15, Layout.none() })
+
 local function render()
     CanvasUI.clear(renderCanvas, "+")
 
+    componentTree:render(renderCanvas)
+
     --canvas area
     CanvasUI.drawCanvas(renderCanvas, artCanvas, canvasX + 1, canvasY + 1)
-    --current tool overlay
+    -- --current tool overlay
     if selectedTool == rectangle and tools[rectangle].start and tools[rectangle].fin then
         local x1, y1 = tools[rectangle].start[1], tools[rectangle].start[2]
         local x2, y2 = tools[rectangle].fin[1], tools[rectangle].fin[2]
@@ -240,8 +248,7 @@ local function render()
     Canvas.trySetPixel(renderCanvas, canvasX + artCanvas.width + 1, canvasY + artCanvas.height + 1, "%")
 
     -- toolbar
-    CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth + 1, 1, toolbarWidth, Term.height, " ")
-    CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth, 1, 1, Term.height, "|")
+    --CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth + 1, 1, toolbarWidth, Term.height, " ")
     CanvasUI.writeLine(renderCanvas, Term.width - toolbarWidth + 1, 1, "   TOOLS")
     CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth + 1, 2, toolbarWidth, 1, "-")
     for i, tool in ipairs(tools) do
@@ -255,8 +262,7 @@ local function render()
     end
 
     -- palette
-    CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, paletteWidth, Term.height, " ")
-    CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth - 1, 1, 1, Term.height, "|")
+    --CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, paletteWidth, Term.height, " ")
     CanvasUI.writeLine(renderCanvas, Term.width - toolbarWidth - paletteWidth, 1, "  PALETTE")
     CanvasUI.fillRect(renderCanvas, Term.width - toolbarWidth - paletteWidth, 2, paletteWidth, 1, "-")
     for x, v in pairs(palette) do
