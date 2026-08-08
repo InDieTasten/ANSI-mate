@@ -41,6 +41,7 @@ end
 
 function Canvas.trySetPixel(canvas, x, y, char)
     assert(type(canvas) == "table", "canvas must be a table")
+    assert(canvas.width and canvas.height, "canvas must have width and height properties")
     assert(type(x) == "number", "x must be a number")
     assert(type(y) == "number", "y must be a number")
     assert(type(char) == "string", "char must be a string")

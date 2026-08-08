@@ -213,10 +213,13 @@ local function update(inputs)
     return true
 end
 
-local componentTree = Layout.columns("|",
-    { "fill", CanvasControl.new(state, tools, rectangle) },
-    { 12, PaletteControl.new(state, tools) },
-    { 15, ToolControl.new(state, tools) })
+local componentTree = Layout.rows("-",
+    { "fill", Layout.columns("|",
+        { "fill", CanvasControl.new(state, tools, rectangle) },
+        { 12, PaletteControl.new(state, tools) },
+        { 15, ToolControl.new(state, tools) }) },
+    { 1, { render = function(self, texture) CanvasUI.writeLine(texture, 1, 1, "Press Q to quit. Press Ctrl+S to save.") end } })
+
 
 local function render()
     CanvasUI.clear(renderCanvas)
