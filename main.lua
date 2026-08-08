@@ -67,8 +67,19 @@ end
 
 state.toolbarWidth = calculateToolbarWidth()
 
+local componentTree = Layout.rows("-",
+    { "fill", Layout.columns("|",
+        { "fill", CanvasControl.new(state, tools, rectangle) },
+        { 12, PaletteControl.new(state, tools) },
+        { 15, ToolControl.new(state, tools) }) },
+    { 1, { render = function(self, texture) CanvasUI.writeLine(texture, 1, 1, "Press Q to quit. Press Ctrl+S to save.") end } })
+
 local function update(inputs)
     for _, input in ipairs(inputs) do
+        if componentTree:update(input) then
+            -- component tree handled the input, no further processing needed
+            return true
+        end
         if input.type == "char" and input.char == "q" then     -- Q
             return false
         elseif input.type == "char" and input.char == "p" then -- P
@@ -212,14 +223,6 @@ local function update(inputs)
 
     return true
 end
-
-local componentTree = Layout.rows("-",
-    { "fill", Layout.columns("|",
-        { "fill", CanvasControl.new(state, tools, rectangle) },
-        { 12, PaletteControl.new(state, tools) },
-        { 15, ToolControl.new(state, tools) }) },
-    { 1, { render = function(self, texture) CanvasUI.writeLine(texture, 1, 1, "Press Q to quit. Press Ctrl+S to save.") end } })
-
 
 local function render()
     CanvasUI.clear(renderCanvas)
