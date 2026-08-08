@@ -80,7 +80,7 @@ local function update(inputs)
         elseif input.type == "raw" and input.hex == "13" then  -- Ctrl + S
             local file = io.open(fileName, "w")
             if file then
-                file:write(Canvas.toText(artCanvas))
+                file:write(Canvas.toText(state.artCanvas))
                 file:close()
             else
                 error("Could not open file for writing.")
