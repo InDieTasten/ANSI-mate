@@ -1,9 +1,8 @@
 CanvasControl = {}
 
-function CanvasControl.new(state, artCanvas, tools, rectangle)
+function CanvasControl.new(state, tools, rectangle)
     local self = {
         state = state,
-        artCanvas = artCanvas,
         tools = tools,
         rectangle = rectangle
     }
@@ -22,7 +21,7 @@ function CanvasControl.new(state, artCanvas, tools, rectangle)
     function self:render(texture)
         --canvas area
         CanvasUI.clear(texture, "+")
-        CanvasUI.drawCanvas(texture, self.artCanvas, self.state.canvasX + 1, self.state.canvasY + 1)
+        CanvasUI.drawCanvas(texture, self.state.artCanvas, self.state.canvasX + 1, self.state.canvasY + 1)
         -- --current tool overlay
         if self.state.selectedTool == self.rectangle and self.tools[self.rectangle].start and self.tools[self.rectangle].fin then
             local x1, y1 = self.tools[self.rectangle].start[1], self.tools[self.rectangle].start[2]
@@ -39,8 +38,8 @@ function CanvasControl.new(state, artCanvas, tools, rectangle)
             end
         end
         Canvas.trySetPixel(texture,
-            self.state.canvasX + self.artCanvas.width + 1,
-            self.state.canvasY + self.artCanvas.height + 1,
+            self.state.canvasX + self.state.artCanvas.width + 1,
+            self.state.canvasY + self.state.artCanvas.height + 1,
             "%")
     end
 

@@ -51,7 +51,8 @@ local rectangle = 3
 local fill = 4
 local globalFill = 5
 local state = {
-    selectedTool = pencil
+    selectedTool = pencil,
+    artCanvas = artCanvas
 }
 
 local function calculateToolbarWidth()
@@ -89,19 +90,19 @@ local function update(inputs)
                 local newWidth = input.x - state.canvasX - 1
                 local newHeight = input.y - state.canvasY - 1
                 if newWidth >= 1 and newHeight >= 1 then
-                    artCanvas = Canvas.resize(artCanvas, newWidth, newHeight)
+                    state.artCanvas = Canvas.resize(state.artCanvas, newWidth, newHeight)
                 end
             elseif state.selectedTool == pencil and input.button == 0 then -- pencil
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.setPixel(artCanvas, x, y, tools[pencil].char)
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.setPixel(state.artCanvas, x, y, tools[pencil].char)
                 end
             elseif state.selectedTool == eraser and input.button == 0 then -- eraser
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.setPixel(artCanvas, x, y, " ")
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.setPixel(state.artCanvas, x, y, " ")
                 end
             elseif state.selectedTool == rectangle and input.button == 0 then -- rectangle
                 local x = input.x - state.canvasX
@@ -111,7 +112,7 @@ local function update(inputs)
                 end
             end
         elseif input.type == "mouse_press" then
-            if input.x == state.canvasX + artCanvas.width + 1 and input.y == state.canvasY + artCanvas.height + 1 then
+            if input.x == state.canvasX + state.artCanvas.width + 1 and input.y == state.canvasY + state.artCanvas.height + 1 then
                 resizing = true
             elseif input.x >= Term.width - state.toolbarWidth + 1 and input.y >= 3 and input.y <= #tools + 2 then
                 state.selectedTool = input.y - 2
@@ -120,28 +121,28 @@ local function update(inputs)
             elseif state.selectedTool == pencil and input.button == 0 then
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.setPixel(artCanvas, x, y, tools[pencil].char)
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.setPixel(state.artCanvas, x, y, tools[pencil].char)
                 end
             elseif state.selectedTool == eraser and input.button == 0 then
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.setPixel(artCanvas, x, y, " ")
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.setPixel(state.artCanvas, x, y, " ")
                 end
             elseif state.selectedTool == rectangle and input.button == 0 then
                 tools[rectangle].start = { input.x - state.canvasX, input.y - state.canvasY }
             elseif state.selectedTool == fill and input.button == 0 then
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.fill(artCanvas, x, y, tools[fill].char, false)
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.fill(state.artCanvas, x, y, tools[fill].char, false)
                 end
             elseif state.selectedTool == globalFill and input.button == 0 then
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.fill(artCanvas, x, y, tools[globalFill].char, true)
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.fill(state.artCanvas, x, y, tools[globalFill].char, true)
                 end
             end
         elseif input.type == "mouse_release" then
@@ -149,8 +150,8 @@ local function update(inputs)
             if state.selectedTool == pencil and input.button == 0 then -- pencil
                 local x = input.x - state.canvasX
                 local y = input.y - state.canvasY
-                if x >= 1 and x <= artCanvas.width and y >= 1 and y <= artCanvas.height then
-                    Canvas.setPixel(artCanvas, x, y, tools[pencil].char)
+                if x >= 1 and x <= state.artCanvas.width and y >= 1 and y <= state.artCanvas.height then
+                    Canvas.setPixel(state.artCanvas, x, y, tools[pencil].char)
                 end
             elseif state.selectedTool == rectangle and input.button == 0 then -- rectangle
                 local x = input.x - state.canvasX
@@ -161,12 +162,12 @@ local function update(inputs)
                     local xMin, xMax = math.min(x1, x2), math.max(x1, x2)
                     local yMin, yMax = math.min(y1, y2), math.max(y1, y2)
                     for x = xMin, xMax do
-                        Canvas.trySetPixel(artCanvas, x, yMin, tools[rectangle].char)
-                        Canvas.trySetPixel(artCanvas, x, yMax, tools[rectangle].char)
+                        Canvas.trySetPixel(state.artCanvas, x, yMin, tools[rectangle].char)
+                        Canvas.trySetPixel(state.artCanvas, x, yMax, tools[rectangle].char)
                     end
                     for y = yMin, yMax do
-                        Canvas.trySetPixel(artCanvas, xMin, y, tools[rectangle].char)
-                        Canvas.trySetPixel(artCanvas, xMax, y, tools[rectangle].char)
+                        Canvas.trySetPixel(state.artCanvas, xMin, y, tools[rectangle].char)
+                        Canvas.trySetPixel(state.artCanvas, xMax, y, tools[rectangle].char)
                     end
                     tools[rectangle].start = nil
                     tools[rectangle].fin = nil
@@ -174,8 +175,8 @@ local function update(inputs)
             end
         elseif input.type == "resize" then
             renderCanvas = Canvas.new(input.width, input.height)
-            state.canvasX = math.floor(Term.width / 2 - artCanvas.width / 2)
-            state.canvasY = math.floor(Term.height / 2 - artCanvas.height / 2)
+            state.canvasX = math.floor(Term.width / 2 - state.artCanvas.width / 2)
+            state.canvasY = math.floor(Term.height / 2 - state.artCanvas.height / 2)
             state.palette = {}
             for c = 32, 126 do
                 local column = 0
@@ -213,7 +214,7 @@ local function update(inputs)
 end
 
 local componentTree = Layout.columns("|",
-    { "fill", CanvasControl.new(state, artCanvas, tools, rectangle) },
+    { "fill", CanvasControl.new(state, tools, rectangle) },
     { 12, PaletteControl.new(state, tools) },
     { 15, ToolControl.new(tools, state) })
 
