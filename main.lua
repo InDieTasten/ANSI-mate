@@ -216,7 +216,7 @@ end
 local componentTree = Layout.columns("|",
     { "fill", CanvasControl.new(state, tools, rectangle) },
     { 12, PaletteControl.new(state, tools) },
-    { 15, ToolControl.new(tools, state) })
+    { 15, ToolControl.new(state, tools) })
 
 local function render()
     CanvasUI.clear(renderCanvas)

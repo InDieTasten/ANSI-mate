@@ -1,6 +1,6 @@
 ToolControl = {}
 
-function ToolControl.new(tools, state)
+function ToolControl.new(state, tools)
     local self = {
         tools = tools,
         state = state
