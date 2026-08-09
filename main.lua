@@ -72,8 +72,12 @@ local componentTree = Layout.rows("-",
         { "fill", CanvasControl.new(state, tools, rectangle) },
         { 12, PaletteControl.new(state, tools) },
         { 15, ToolControl.new(state, tools) }) },
-    { 1, { render = function(self, texture) CanvasUI.writeLine(texture, 1, 1, "Press Q to quit. Press Ctrl+S to save.") end, update = function(
-        self, input) end } })
+    { 1, {
+        render = function(self, texture) CanvasUI.writeLine(texture, 1, 1, "Press Q to quit. Press Ctrl+S to save.") end,
+        update = function(
+            self, input)
+        end
+    } })
 
 local function update(inputs)
     for _, input in ipairs(inputs) do
@@ -81,15 +85,9 @@ local function update(inputs)
             -- component tree handled the input, no further processing needed
             return true
         end
-        if input.type == "char" and input.char == "q" then     -- Q
+        if input.type == "char" and input.char == "q" then    -- Q
             return false
-        elseif input.type == "char" and input.char == "p" then -- P
-            state.selectedTool = pencil
-        elseif input.type == "char" and input.char == "e" then -- E
-            state.selectedTool = eraser
-        elseif input.type == "char" and input.char == "r" then -- R
-            state.selectedTool = rectangle
-        elseif input.type == "raw" and input.hex == "13" then  -- Ctrl + S
+        elseif input.type == "raw" and input.hex == "13" then -- Ctrl + S
             local file = io.open(fileName, "w")
             if file then
                 file:write(Canvas.toText(state.artCanvas))
